@@ -218,11 +218,12 @@ void loop() {
       }
       rainbow_beat();
     }
-  } else {
+  } else { // I guess we're off ;)
     fadeAll();
     showleds();
   }
-  
+
+  // Reset state
   if(oldMode != stateMode) {
     solid_color = false;
     oldMode = stateMode;
