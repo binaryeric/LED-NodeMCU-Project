@@ -100,12 +100,15 @@ void rainbow_beat() {
 //------        MAIN LOOP      ------\\
 
 void setup() {
+  //
+  Serial.begin(9600);
   FastLED.addLeds<CHIPSET, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid,pass);
   //
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    Serial.println("Connecting WIFI");
   }
 }
 

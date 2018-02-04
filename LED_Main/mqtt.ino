@@ -49,12 +49,14 @@ void callback(char *topic, byte* payload, unsigned int length) {
 }
 
 void startMQTT() {
+  Serial.begin(115200);
   client.setServer(mqtt_server,mqtt_port);
   client.setCallback(callback);
 }
 
 void connectMQTT() {
   while(!client.connected()) {
+    Serial.println("Connecting to MSQTT");
     if(client.connect(sensor_name)) {
       client.subscribe(light_set_topic);
     }
