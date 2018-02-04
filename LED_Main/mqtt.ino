@@ -4,6 +4,7 @@
 #include <PubSubClient.h>
 #include <ArduinoOTA.h>
 #include <WiFiUdp.h>
+#include <ArduinoJson.h>
 
 //------ defs
 const char* mqtt_server = "192.168.0.175";
@@ -24,19 +25,32 @@ String effectString = "solid";
 String oldeffectString = "solid";
 
 //---- MQTT packets
-const int BUFFER_SIZE = JSON_OBJECT_SIZE(10);
-#define MQTT_MAX_PACKET_SIZE 512
 
 
 //------        CODE      ------\\
 
 extern WiFiClient espClient;
+PubSubClient client(espClient);
+extern boolean processJson();
 
-PubSubClient client(espClient)
+void callback(char *topic, byte* payload, unsigned int length) {
+  char msg[length+1];
+  for(int i=0; i<length; i++){
+    msg[i] = (char)payload[i];
+  }
+  msg[length] = '\0';
 
-void startMQTT(mqtt_callback) {
+  if(processJson(msg)) {
+    
+  } else {
+    // nothing
+  }
+  
+}
+
+void startMQTT() {
   client.setServer(mqtt_server,mqtt_port);
-  client.setCallback(mqtt_callback);
+  client.setCallback(callback);
 }
 
 void connectMQTT() {
@@ -88,24 +102,28 @@ void startOTA() {
   ArduinoOTA.setHostname(sensor_name);
   ArduinoOTA.setPassword((const char*)OTApass);
   //
+  /*
   ArduinoOTA.onStart([]() {
     // starting
   }
   ArduinoOTA.onEnd([]() {
-    Serial.println("\nEnd");
+    //Serial.println("\nEnd");
   });
+  
   ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
-    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+   // Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
   });
+  
   ArduinoOTA.onError([](ota_error_t error) {
-    Serial.printf("Error[%u]: ", error);
+/*    Serial.printf("Error[%u]: ", error);
     if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
     else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
     else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
     else if (error == OTA_END_ERROR) Serial.println("End Failed");
   });
-  ArduinoOTA.begin();
+  
+  ArduinoOTA.begin(); */
 }
 
 

@@ -8,6 +8,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+#include <ArduinoJson.h>
 
 //------ WiFi
 const char* ssid = "SmartDevices";
@@ -20,6 +21,12 @@ const char* pass = "dickface";
 //
 #define CHIPSET WS2811
 #define COLOR_ORDER BRG
+
+//
+
+const int BUFFER_SIZE = JSON_OBJECT_SIZE(10);
+#define MQTT_MAX_PACKET_SIZE 512
+//
 
 byte red = 255;
 byte green = 255;
@@ -56,67 +63,16 @@ extern void handleOTA();
 
 //
 
-void mqttReciever(char *topic, byte* payload, unsigned int length) {
-  char msg[length+1]
-  for(int i=0; i<length; i++){
-    msg[i] = (char)payload[i];
-  }
-  msg[length] = '\0';
-  
-}
-
-bool processJson(char* message) {
-  StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
-
-  JsonObject& root = jsonBuffer.parseObject(message);
-
-  if (!root.success()) {
-    // we've failed
-    return false;
-  }
-  
-  // Set modes:
-  if(root.containsKey("state")) {
-    if(strcmp(root["state"],"on"== 0) {
-      stateOn = true;
-    } else if(strcmp(root["state"],"off"== 0) {
-      stateOn = false;
-    }
-  }
-
-  if(root.containsKey("effect")) {
-    stateMode = root["effect"];
-  }
-  
-  if(root.containsKey("rgb") {
-    red = root["rgb"]["r"];
-    green = root["rgb"]["g"];
-    blue = root["rgb"]["b"];
-    //
-    calculateEffectColors();
-    updateColors();
-  }
-
-  if(root.containsKey("brightness") {
-    brightness = root["brightness"];
-  }
-
-  if(root.containsKey("transitionspeed")) {
-    transitionTime = root["transitionspeed"];
-  }
-  
-}
-
 void showleds() {
   delay(1);
   //
-  if (on) {
+//  if (on) {
     FastLED.setBrightness(brightness);  //EXECUTE EFFECT COLOR
     FastLED.show();
     if (transitionTime > 0 && transitionTime < 130) {  //Sets animation speed based on receieved value
       FastLED.delay(1000 / transitionTime);
       //delay(10*transitionTime);
-    }
+  //  }
   }
 /*  else if (startFade) {
     setColor(0, 0, 0);
@@ -181,6 +137,49 @@ void calculateEffectColors() {
   realBlue = map(blue,0,255,0,brightness);
 }
 
+bool processJson(char* message) {
+  StaticJsonBuffer<BUFFER_SIZE> jsonBuffer;
+
+  JsonObject& root = jsonBuffer.parseObject(message);
+
+  if (!root.success()) {
+    // we've failed
+    return false;
+  }
+  
+  // Set modes:
+  if(root.containsKey("state")) {
+    if(strcmp(root["state"],"on"== 0)) {
+      stateOn = true;
+    } else if(strcmp(root["state"],"off"== 0)){
+      stateOn = false;
+    }
+  }
+
+  if(root.containsKey("effect")) {
+    stateMode = root["effect"];
+  }
+  
+  if(root.containsKey("rgb")) {
+    red = root["rgb"]["r"];
+    green = root["rgb"]["g"];
+    blue = root["rgb"]["b"];
+    //
+    calculateEffectColors();
+    updateColor();
+  }
+
+  if(root.containsKey("brightness")) {
+    brightness = root["brightness"];
+  }
+
+  if(root.containsKey("transitionspeed")) {
+    transitionTime = root["transitionspeed"];
+  }
+  
+}
+
+
 void loop() {
   // put your main code here, to run repeatedly:
   handleOTA();
@@ -209,8 +208,8 @@ void loop() {
         oldBrightness = brightness;
         //
         calculateEffectColors();
-        updateColor()
-        solidColor = true;
+        updateColor();
+        solid_color = true;
       }
     } else if(stateMode == 3) {
       if(oldMode != stateMode) {
@@ -219,7 +218,7 @@ void loop() {
       rainbow_beat();
     }
   } else {
-    fadeAll();
+    fadeall();
     showleds();
   }
   
